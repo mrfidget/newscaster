@@ -1,0 +1,62 @@
+feeds:
+  - name: "Eurotopics"
+    url: "https://www.eurotopics.net/export/en/rss.xml"
+    enabled: true
+
+  - name: "Al Jazeera"
+    url: "https://www.aljazeera.com/xml/rss/all.xml"
+    enabled: true
+
+  - name: "The Hindu"
+    url: "https://www.thehindu.com/news/feeder/default.rss"
+    enabled: true
+
+  - name: "Global Voices"
+    url: "https://globalvoices.org/feed/"
+    enabled: true
+
+
+# How often to check for new articles (minutes)
+fetch_interval: 30
+
+# Maximum articles to process per cycle (after topic filtering)
+max_articles_per_cycle: 10
+
+# Minimum articles required to run a cycle — fewer skips with a warning
+min_articles_per_cycle: 3
+
+# Topic keyword filter — articles must contain at least one of these
+# (case-insensitive match against title + content)
+topics:
+  - war
+  - artificial intelligence
+  - climate
+  - economy
+  - Brent Crude Oil
+  - inflation
+
+# Summarisation / digest (kept for compatibility — max_words used in pipeline cleaning)
+summarization:
+  enabled: true
+  max_words: 60
+  min_rss_words: 20
+
+# Text-to-Speech settings (piper-tts)
+tts:
+  enabled: true
+  model_path: /models/tts/en_GB-jenny_dioco-medium.onnx
+  cache_audio: true
+  bitrate: "64k"
+
+# Local LLM (llama-cpp-python + GGUF)
+llm:
+  model_path: /models/llm/qwen2.5-1.5b-instruct-q4_k_m.gguf
+  max_tokens: 300
+  temperature: 0.3
+  system_prompt: >
+    You are a concise radio news bulletin writer.
+    You write short, factual summaries of news stories.
+
+# Audio cache pruning (runs daily)
+# Files older than this are deleted from /data/audio
+audio_cache_max_age_days: 30

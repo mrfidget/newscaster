@@ -1,0 +1,24 @@
+# No external services required — newscaster is fully self-contained.
+# LLM and TTS models are loaded on demand from bind-mounted directories.
+
+services:
+  newscaster:
+    build: .
+    container_name: newscaster
+    restart: unless-stopped
+    volumes:
+      - ./data:/data                        # SQLite DB + audio cache
+      - ./config:/config:ro                 # feeds.yaml (read-only)
+      - ./models/tts:/models/tts:ro         # piper voice model (.onnx + .onnx.json)
+      - ./models/llm:/models/llm:ro         # GGUF model file
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - TZ=UTC
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

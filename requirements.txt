@@ -1,0 +1,15 @@
+# Telegram
+python-telegram-bot==22.6.0
+
+# RSS
+feedparser==6.0.12
+
+# Config / env
+pyyaml==6.0.3
+python-dotenv==1.2.2
+
+# Local LLM inference
+llama-cpp-python==0.3.16
+
+# Audio conversion (WAV → MP3)
+pydub==0.25.1
