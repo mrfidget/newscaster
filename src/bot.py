@@ -110,8 +110,9 @@ class NewsBot:
 
         try:
             if audio_file:
+                # Audio caption: digest only, no links (1024 char limit too tight)
                 caption = self._build_caption(
-                    header, digest, articles, limit=_AUDIO_CAPTION_LIMIT
+                    header, digest, [], limit=_AUDIO_CAPTION_LIMIT
                 )
                 with open(audio_file, "rb") as audio:
                     await self.app.bot.send_audio(
@@ -127,7 +128,18 @@ class NewsBot:
                     f"Sent audio bulletin ({audio_duration}s, "
                     f"{article_count} stories, {len(caption)} caption chars)"
                 )
+                # Send links as a separate follow-up message
+                links_block = self._build_links_block(articles)
+                if links_block:
+                    await self.app.bot.send_message(
+                        chat_id=self.chat_id,
+                        text=links_block,
+                        parse_mode="Markdown",
+                        disable_web_page_preview=True,
+                    )
+                    logger.info(f"Sent links follow-up ({len(links_block)} chars)")
             else:
+                # Text message: digest + links together (4096 char limit is ample)
                 text = self._build_caption(
                     header, digest, articles, limit=_TEXT_MESSAGE_LIMIT
                 )
@@ -198,9 +210,13 @@ class NewsBot:
             title = article.get("title", "Article")
             url   = article.get("url", "")
             if url:
-                safe_title = re.sub(r"([_*\[\]()~`>#+\-=|{}.!])", r"\\\1", title)
+                # Only escape square brackets — they break the link syntax.
+                # Over-escaping other chars causes Telegram to reject the message.
+                safe_title = title.replace("[", r"\[").replace("]", r"\]")
                 lines.append(f"• [{safe_title}]({url})")
-        return "\n".join(lines) if len(lines) > 1 else ""
+        result = "\n".join(lines) if len(lines) > 1 else ""
+        logger.debug(f"Links block: {len(lines)-1} links, {len(result)} chars")
+        return result
 
     def _trim_digest_to_fit(
         self, header: str, digest_block: str, limit: int
@@ -237,7 +253,12 @@ class NewsBot:
     @staticmethod
     def _format_digest(digest: str) -> str:
         """One sentence per line with ▸ bullets; closing phrase italicised."""
-        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", digest) if s.strip()]
+        # Split only on sentence-ending punctuation followed by a space and
+        # a capital letter — avoids splitting on abbreviations like A.K.M.
+        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+(?=[A-Z\'\u2018\u2019])", digest) if s.strip()]
+        # If no splits found (e.g. single sentence), fall back to the whole digest
+        if not sentences:
+            sentences = [digest.strip()]
         if not sentences:
             return digest
 

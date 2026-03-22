@@ -15,6 +15,13 @@ feeds:
     url: "https://globalvoices.org/feed/"
     enabled: true
 
+  - name: "BBC World"
+    url: "http://feeds.bbci.co.uk/news/world/rss.xml"
+    enabled: true
+
+  - name: "United Nations Global"
+    url: "https://news.un.org/feed/subscribe/en/news/region/global/feed/rss.xml"
+    enabled: true
 
 # How often to check for new articles (minutes)
 fetch_interval: 30
